@@ -1,5 +1,3 @@
-
-
 from flask import Flask, request, jsonify
 import pandas as pd
 import mysql.connector
@@ -18,7 +16,7 @@ db_config = {
 
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name="mypool",
-    pool_size=5,
+    pool_size=3,  # Reduced pool size
     **db_config
 )
 
@@ -31,9 +29,9 @@ def predict_illicit_video_url():
     result = 'Illicit Video URL' if url in illicit_video_urls else 'Safe URL'
 
     # Store the prediction in the database
-    connection = connection_pool.get_connection()
-    cursor = connection.cursor()
     try:
+        connection = connection_pool.get_connection()
+        cursor = connection.cursor()
         query = "INSERT INTO illicit_video_url_predictions (url, result, created_at) VALUES (%s, %s, %s)"
         values = (url, result, datetime.now())
         cursor.execute(query, values)
@@ -43,26 +41,29 @@ def predict_illicit_video_url():
     finally:
         cursor.close()
         connection.close()
+        print("Connection closed after predict_url")
 
     return result
 
 @app.route('/illicit_video/history', methods=['GET'])
 def get_illicit_video_url_history():
-    connection = connection_pool.get_connection()
-    cursor = connection.cursor(dictionary=True)
     try:
+        connection = connection_pool.get_connection()
+        cursor = connection.cursor(dictionary=True)
         query = "SELECT url, result, created_at FROM illicit_video_url_predictions ORDER BY created_at DESC LIMIT 50"
         cursor.execute(query)
         history = cursor.fetchall()
         for item in history:
             item['created_at'] = item['created_at'].strftime("%Y-%m-%d %H:%M:%S")
-        return jsonify(history)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
         return jsonify([])
     finally:
         cursor.close()
         connection.close()
+        print("Connection closed after get_illicit_video_url_history")
+
+    return jsonify(history)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10004, debug=False)
