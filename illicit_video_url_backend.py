@@ -11,9 +11,9 @@ app = Flask(__name__)
 # Database configuration
 db_config = {
     "host": "sql12.freesqldatabase.com",
-    "user": "sql12714674",
-    "password": "15cCYtDhUC",
-    "database": "sql12714674"
+    "user": "sql12715120",
+    "password": "8CXlT1mCiq",
+    "database": "sql12715120"
 }
 
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
